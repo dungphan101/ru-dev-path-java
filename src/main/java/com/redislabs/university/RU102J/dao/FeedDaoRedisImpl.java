@@ -23,6 +23,14 @@ public class FeedDaoRedisImpl implements FeedDao {
     public void insert(MeterReading meterReading) {
         // START Challenge #6
         // END Challenge #6
+        try (Jedis jedis = jedisPool.getResource()) {
+            String globalKey = RedisSchema.getGlobalFeedKey();
+            String siteKey = RedisSchema.getFeedKey(meterReading.getSiteId());
+            jedis.xadd(globalKey, StreamEntryID.NEW_ENTRY,
+                    meterReading.toMap(), globalMaxFeedLength, true);
+            jedis.xadd(siteKey, StreamEntryID.NEW_ENTRY,
+                    meterReading.toMap(), siteMaxFeedLength, true);
+        }
     }
 
     @Override
